@@ -1,0 +1,22 @@
+.header {
+  background: #333;
+  padding: 32px;
+  text-align: center;
+}
+
+.header-logo {
+  font-size: 2.5rem;
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: 2px;
+  color: #ffcb05;
+  -webkit-text-stroke: 2px #3468af;
+  text-shadow:
+    3px 3px 0 #3468af,
+    -1px -1px 0 #3468af,
+    1px -1px 0 #3468af,
+    -1px 1px 0 #3468af,
+    0 3px 0 #1a3a6e;
+  cursor: default;
+  user-select: none;
+}
