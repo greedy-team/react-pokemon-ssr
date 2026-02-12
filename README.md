@@ -1,4 +1,8 @@
-# 포켓몬 도감 SSR 전환 미션
+<div align="center">
+  <img src="images/pokedex.webp" alt="pokedex" width="300" heigh="200"/>
+</div>
+
+# 포켓몬 도감 with Server Side Rendering
 
 CSR(Client-Side Rendering)으로 동작하는 React 포켓몬 도감 앱을 SSR(Server-Side Rendering)으로 전환합니다.
 
