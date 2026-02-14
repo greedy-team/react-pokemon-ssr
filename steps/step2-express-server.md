@@ -4,7 +4,8 @@
 
 Step1에서 서버 엔트리를 만들었지만, 아직 이 코드를 실행하고 브라우저에 HTML을 전달해줄 서버가 없다.
 
-> **생각해보기:** 브라우저가 `http://localhost:3000`으로 요청을 보내면, 누가 React 컴포넌트를 HTML로 바꿔서 응답해줘야 할까? 그리고 개발 중에 Vite의 [HMR](https://frontend-fundamentals.com/bundling/deep-dive/dev/hmr.html) 같은 기능은 어떻게 유지할 수 있을까?
+> **생각해보기:** 브라우저가 `http://localhost:3000`으로 요청을 보내면, 누가 React 컴포넌트를 HTML로 바꿔서 응답해줘야 할까?
+> 그리고 개발 중에 Vite의 [HMR](https://frontend-fundamentals.com/bundling/deep-dive/dev/hmr.html) 같은 기능은 어떻게 유지할 수 있을까?
 
 ## 사전 준비
 
