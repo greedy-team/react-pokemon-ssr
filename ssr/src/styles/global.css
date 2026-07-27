@@ -16,3 +16,16 @@ body {
   font-size: 1.1rem;
   color: #999;
 }
+
+.not-found {
+  text-align: center;
+  padding: 60px 20px;
+}
+.not-found h1 {
+  font-size: 64px;
+  margin: 0 0 8px;
+}
+.not-found p {
+  color: #666;
+  margin: 0 0 24px;
+}
