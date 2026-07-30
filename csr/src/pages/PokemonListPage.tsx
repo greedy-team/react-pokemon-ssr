@@ -11,7 +11,7 @@ const PokemonListPage = () => {
 
   const [pokemons, setPokemons] = useState<PokemonListItem[]>([]);
   const [totalPages, setTotalPages] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchPokemonList(currentPage).then((data) => {
