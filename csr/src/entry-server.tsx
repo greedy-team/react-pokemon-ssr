@@ -1,7 +1,12 @@
 import { renderToString } from "react-dom/server";
-import App from "../../ssr/src/App";
+import { StaticRouter } from "react-router";
+import App from "./App";
 
-export function render() {
-  const html = renderToString(<App />);
+export function render(url: string) {
+  const html = renderToString(
+    <StaticRouter location={url}>
+      <App />
+    </StaticRouter>,
+  );
   return { html };
 }
