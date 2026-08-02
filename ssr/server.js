@@ -22,11 +22,11 @@ async function startServer() {
       const template = await vite.transformIndexHtml(url, rawTemplate);
 
       const { render } = await vite.ssrLoadModule("/src/entry-server.tsx");
-      const appHtml = render(url);
+      const { html: appHtml, status } = render(url);
 
       const html = template.replace("<!--ssr-outlet-->", appHtml);
 
-      res.status(200).set({ "Content-Type": "text/html" }).end(html);
+      res.status(status).set({ "Content-Type": "text/html" }).end(html);
     } catch (error) {
       vite.ssrFixStacktrace(error);
       next(error);
