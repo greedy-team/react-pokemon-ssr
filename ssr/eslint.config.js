@@ -20,4 +20,13 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    files: ['server.js'],
+    extends: [js.configs.recommended],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: globals.node,
+    },
+  },
 ])

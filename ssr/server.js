@@ -7,6 +7,8 @@ const PORT = 3000;
 async function startServer() {
   const app = express();
 
+  // middlewareMode: Vite를 독립된 서버가 아닌 Express를 붙여 개발 중 HMR 가능하게 함
+  // appType "custom": Vite가 index.html을 직접 가져오지 않게 해서 HTML 응답 책임을 아래 핸들러가 갖도록 함
   const vite = await createViteServer({
     server: { middlewareMode: true },
     appType: "custom",
@@ -24,7 +26,8 @@ async function startServer() {
       const { render } = await vite.ssrLoadModule("/src/entry-server.tsx");
       const { html: appHtml, status } = render(url);
 
-      const html = template.replace("<!--ssr-outlet-->", appHtml);
+      // 치환값을 함수로 넘김(이때 마크업 깨질 수도 있음!!)
+      const html = template.replace("<!--ssr-outlet-->", () => appHtml);
 
       res.status(status).set({ "Content-Type": "text/html" }).end(html);
     } catch (error) {

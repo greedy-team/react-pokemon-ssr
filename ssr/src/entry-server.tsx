@@ -14,6 +14,7 @@ function resolveStatus(url: string) {
 }
 
 export function render(url: string) {
+  // 서버에는 window가 없어 현재 URL을 스스로 알 수 없기 대문에 요청 URL을 주입받음
   const html = renderToString(
     <StrictMode>
       <StaticRouter location={url}>
