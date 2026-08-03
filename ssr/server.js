@@ -16,7 +16,10 @@ async function createServer() {
 
   app.use(vite.middlewares);
 
-  app.use(async (req, res, next) => {
+  app.get("*", async (req, res, next) => {
+    if (!req.accepts("html")) {
+      return next();
+    }
     const url = req.originalUrl;
 
     try {
