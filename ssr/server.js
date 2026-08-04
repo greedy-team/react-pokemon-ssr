@@ -41,17 +41,29 @@ async function createServer() {
       //    사용할 수 있도록 자동 변환합니다. 번들링은 필요 없으며,
       //    HMR과 비슷한 효율적인 무효화를 제공합니다.
       const { render } = await vite.ssrLoadModule("/src/entry-server.js");
+      const { fetchPokemonList } = await vite.ssrLoadModule(
+        "/src/api/pokemon.ts",
+      );
 
       // 4. 앱 HTML을 렌더링합니다. entry-server.js에서 export한 `render` 함수가
       //    적절한 프레임워크 SSR API를 호출한다고 가정합니다.
       //    예: ReactDOMServer.renderToString()
-      const appHtml = await render(url);
+      const data = await fetchPokemonList();
+      const initialData = {
+        pokemons: data.results,
+        totalPages: data.totalPages,
+      };
+      const appHtml = await render(initialData, url);
 
       // 5. 앱이 렌더링한 HTML을 템플릿에 주입합니다.
-      const html = template.replace(
-        `<!--pokemon-ssr-content-->`,
-        () => appHtml,
-      );
+      const initialDataJson = JSON.stringify(initialData);
+      const html = template
+        .replace(`<!--pokemon-ssr-content-->`, () => appHtml)
+        .replace(
+          `<!--pokemon-ssr-initial-data-->`,
+          () =>
+            `<script>window.__INITIAL_DATA__ = ${initialDataJson};</script>`,
+        );
 
       // 6. 렌더링된 HTML을 반환합니다.
       res.status(200).set({ "Content-Type": "text/html" }).end(html);

@@ -1,14 +1,21 @@
 import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
-import PokemonListPage from "./pages/PokemonListPage";
+import PokemonListPage, { type InitialData } from "./pages/PokemonListPage";
 import PokemonDetailPage from "./pages/PokemonDetailPage";
 
-const App = () => {
+interface Props {
+  initialData?: InitialData;
+}
+
+const App = ({ initialData }: Props) => {
   return (
     <>
       <Header />
       <Routes>
-        <Route path="/" element={<PokemonListPage />} />
+        <Route
+          path="/"
+          element={<PokemonListPage initialData={initialData} />}
+        />
         <Route path="/pokemon/:id" element={<PokemonDetailPage />} />
       </Routes>
     </>
