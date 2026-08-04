@@ -23,7 +23,7 @@ async function createServer() {
 
       const { html: appHtml } = await render(url);
 
-      const finalHtml = template.replace("<!--app-html-->", appHtml);
+      const finalHtml = template.replace("<!--app-html-->", () => appHtml);
 
       res.status(200).set({ "Content-Type": "text/html" }).end(finalHtml);
     } catch (e) {
