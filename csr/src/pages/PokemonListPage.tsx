@@ -5,6 +5,7 @@ import { fetchPokemonList, type PokemonListItem } from "../api/pokemon";
 import PokemonList from "../components/PokemonList";
 import Pagination from "../components/Pagination";
 
+
 const PokemonListPage = () => {
   const [searchParams] = useSearchParams();
   const currentPage = Number(searchParams.get("page") || "1");
@@ -15,6 +16,7 @@ const PokemonListPage = () => {
 
   useEffect(() => {
     fetchPokemonList(currentPage).then((data) => {
+      setLoading(true);
       setPokemons(data.results);
       setTotalPages(data.totalPages);
       setLoading(false);
