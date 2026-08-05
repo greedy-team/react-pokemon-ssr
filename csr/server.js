@@ -11,7 +11,7 @@ async function createServer() {
   });
 
   app.use(vite.middlewares);
-  app.use(async (req, res) => {
+  app.use(async (req, res, next) => {
     const url = req.originalUrl;
 
     try {
@@ -29,12 +29,22 @@ async function createServer() {
     } catch (e) {
       vite.ssrFixStacktrace(e);
       console.error(e);
-      res.status(500).end(e.message);
+      next(e);
     }
   });
 
   app.listen(5173, () => {
     console.log("서버 실행중: http://localhost:5173");
+  });
+
+  app.use((err, req, res, next) => {
+    console.error(err.stack);
+
+    if (process.env.NODE_ENV === "development") {
+      res.status(500).end(err.stack);
+    } else {
+      res.status(500).end("서버 오류가 발생했습니다");
+    }
   });
 }
 
