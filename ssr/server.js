@@ -49,7 +49,7 @@ async function createServer() {
       //    적절한 프레임워크 SSR API를 호출한다고 가정합니다.
       //    예: ReactDOMServer.renderToString()
       const requestedPage = Number(req.query.page) || 1;
-      const pokemonIdMatch = req.path.match(/^\/pokemon\/(\d+)$/);
+      const pokemonIdMatch = url.match(/^\/pokemon\/(\d+)$/);
       let initialData;
 
       if (pokemonIdMatch) {
