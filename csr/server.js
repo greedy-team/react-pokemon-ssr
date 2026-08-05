@@ -7,6 +7,7 @@ async function createServer() {
   const app = express();
 
   const vite = await createViteServer({
+    root: import.meta.dirname,
     server: { middlewareMode: true },
     appType: "custom",
   });
