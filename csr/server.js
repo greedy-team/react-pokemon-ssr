@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import path from "node:path";
 import express from "express";
 import { createServer as createViteServer } from "vite";
 
@@ -15,7 +16,10 @@ async function createServer() {
     const url = req.originalUrl;
 
     try {
-      let template = await fs.readFile("index.html", "utf-8");
+      let template = await fs.readFile(
+        path.resolve(import.meta.dirname, "index.html"),
+        "utf-8",
+      );
 
       template = await vite.transformIndexHtml(url, template);
 
