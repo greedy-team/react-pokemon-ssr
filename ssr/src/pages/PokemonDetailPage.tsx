@@ -5,18 +5,27 @@ import {
   fetchPokemonDetail,
   type PokemonDetail as PokemonDetailType,
 } from "../api/pokemon";
-
-const PokemonDetailPage = () => {
+interface Props {
+  initialData?: PokemonDetailType;
+}
+const PokemonDetailPage = ({ initialData }: Props) => {
   const { id } = useParams<{ id: string }>();
-  const [pokemon, setPokemon] = useState<PokemonDetailType | null>(null);
-  const [loading, setLoading] = useState(true);
+  const initialPokemon = initialData?.id === Number(id) ? initialData : null;
+  const [pokemon, setPokemon] = useState<PokemonDetailType | null>(
+    initialPokemon,
+  );
+  const [loading, setLoading] = useState(!initialPokemon);
 
   useEffect(() => {
-    fetchPokemonDetail(Number(id)).then((data) => {
-      setPokemon(data);
+    if (initialPokemon) {
+      return;
+    }
+
+    fetchPokemonDetail(Number(id)).then((pokemonData) => {
+      setPokemon(pokemonData);
       setLoading(false);
     });
-  }, [id]);
+  }, [id, initialPokemon]);
 
   if (loading || !pokemon) {
     return <p className="loading">불러오는 중...</p>;

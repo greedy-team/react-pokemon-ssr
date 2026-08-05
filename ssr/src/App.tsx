@@ -14,9 +14,16 @@ const App = ({ initialData }: Props) => {
       <Routes>
         <Route
           path="/"
-          element={<PokemonListPage initialData={initialData} />}
+          element={
+            <PokemonListPage
+              initialData={initialData?.pokemons ? initialData : undefined}
+            />
+          }
         />
-        <Route path="/pokemon/:id" element={<PokemonDetailPage />} />
+        <Route
+          path="/pokemon/:id"
+          element={<PokemonDetailPage initialData={initialData?.pokemon} />}
+        />
       </Routes>
     </>
   );

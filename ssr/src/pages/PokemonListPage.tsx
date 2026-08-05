@@ -1,13 +1,19 @@
 import { useEffect, useState } from "react";
 import "../styles/PokemonList.css";
 import { useSearchParams } from "react-router-dom";
-import { fetchPokemonList, type PokemonListItem } from "../api/pokemon";
+import {
+  fetchPokemonList,
+  type PokemonDetail,
+  type PokemonListItem,
+} from "../api/pokemon";
 import PokemonList from "../components/PokemonList";
 import Pagination from "../components/Pagination";
 
 export interface InitialData {
-  pokemons: PokemonListItem[];
-  totalPages: number;
+  pokemons?: PokemonListItem[];
+  totalPages?: number;
+  page?: number;
+  pokemon?: PokemonDetail;
 }
 
 interface Props {
@@ -23,7 +29,9 @@ const PokemonListPage = ({ initialData }: Props) => {
   );
   const [totalPages, setTotalPages] = useState(initialData?.totalPages ?? 0);
   const [loading, setLoading] = useState(!initialData);
-  const initialPageData = currentPage === 1 ? initialData : undefined;
+
+  const initialPageData =
+    initialData?.page === currentPage ? initialData : undefined;
 
   useEffect(() => {
     if (initialPageData) {
