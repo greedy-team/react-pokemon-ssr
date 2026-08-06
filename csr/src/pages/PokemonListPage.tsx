@@ -5,12 +5,20 @@ import { fetchPokemonList, type PokemonListItem } from "../api/pokemon";
 import PokemonList from "../components/PokemonList";
 import Pagination from "../components/Pagination";
 
+type Props = {
+  initialData?: {
+    results: PokemonListItem[];
+    totalPages: number;
+  };
+};
 
-const PokemonListPage = () => {
+const PokemonListPage = ({ initialData }: Props) => {
   const [searchParams] = useSearchParams();
   const currentPage = Number(searchParams.get("page") || "1");
 
-  const [pokemons, setPokemons] = useState<PokemonListItem[]>([]);
+  const [pokemons, setPokemons] = useState<PokemonListItem[]>(
+    initialData?.results ?? [],
+  );
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(false);
 
