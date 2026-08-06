@@ -28,7 +28,7 @@ async function startServer() {
         "/src/initialData.ts",
       );
 
-      const initialData = await loadInitialData();
+      const initialData = await loadInitialData(url);
       const { html: appHtml, status } = render(url, initialData);
 
       const dataScript = `<script>window.__INITIAL_DATA__ = ${serializeInitialData(initialData)}</script>`;
