@@ -26,9 +26,15 @@ async function createServer() {
 
       const { render } = await vite.ssrLoadModule("/src/entry-server.tsx");
 
-      const { html: appHtml } = await render(url);
+      const { html: appHtml, initialData } = await render(url);
 
-      const finalHtml = template.replace("<!--app-html-->", () => appHtml);
+      const finalHtml = template
+        .replace("<!--app-html-->", () => appHtml)
+        .replace(
+          "<!--app-data-->",
+          () =>
+            `<script>window.__INITIAL_DATA__ = ${safeSerialize(initialData)}</script>`,
+        );
 
       res.status(200).set({ "Content-Type": "text/html" }).end(finalHtml);
     } catch (e) {
@@ -51,6 +57,10 @@ async function createServer() {
       res.status(500).end("서버 오류가 발생했습니다");
     }
   });
+}
+
+function safeSerialize(data) {
+  return JSON.stringify(data).replace(/</g, "\\u003c");
 }
 
 createServer();
