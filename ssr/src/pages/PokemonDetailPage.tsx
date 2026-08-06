@@ -5,18 +5,41 @@ import {
   fetchPokemonDetail,
   type PokemonDetail as PokemonDetailType,
 } from "../api/pokemon";
+import { useInitialData } from "../context/InitialDataContext";
 
 const PokemonDetailPage = () => {
   const { id } = useParams<{ id: string }>();
-  const [pokemon, setPokemon] = useState<PokemonDetailType | null>(null);
-  const [loading, setLoading] = useState(true);
+  const currentId = Number(id);
+
+  const initialData = useInitialData();
+  const preloaded =
+    initialData.detailId === currentId ? initialData.detail : undefined;
+
+  const [pokemon, setPokemon] = useState<PokemonDetailType | null>(
+    preloaded ?? null,
+  );
+  // 화면에 들고 있는 데이터가 어떤 포켓몬 것인지. 서버가 채워준 값에서 출발한다.
+  const [loadedId, setLoadedId] = useState<number | null>(
+    preloaded ? currentId : null,
+  );
+
+  const loading = loadedId !== currentId || !pokemon;
 
   useEffect(() => {
-    fetchPokemonDetail(Number(id)).then((data) => {
+    if (loadedId === currentId) return;
+
+    let ignore = false;
+
+    fetchPokemonDetail(currentId).then((data) => {
+      if (ignore) return;
       setPokemon(data);
-      setLoading(false);
+      setLoadedId(currentId);
     });
-  }, [id]);
+
+    return () => {
+      ignore = true;
+    };
+  }, [currentId, loadedId]);
 
   if (loading || !pokemon) {
     return <p className="loading">불러오는 중...</p>;

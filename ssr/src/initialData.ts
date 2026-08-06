@@ -1,10 +1,17 @@
 import { matchRoutes } from "react-router-dom";
 import { routes } from "./routes";
-import { fetchPokemonList, type PokemonListResponse } from "./api/pokemon";
+import {
+  fetchPokemonList,
+  fetchPokemonDetail,
+  type PokemonListResponse,
+  type PokemonDetail,
+} from "./api/pokemon";
 
 export interface InitialData {
   page?: number;
   list?: PokemonListResponse;
+  detailId?: number;
+  detail?: PokemonDetail;
 }
 
 export async function loadInitialData(url: string): Promise<InitialData> {
@@ -20,6 +27,15 @@ export async function loadInitialData(url: string): Promise<InitialData> {
       const list = await fetchPokemonList(page);
 
       return { page, list };
+    }
+
+    if (match.route.path === "/pokemon/:id") {
+      const detailId = Number(match.params.id);
+      if (!Number.isInteger(detailId)) return {};
+
+      const detail = await fetchPokemonDetail(detailId);
+
+      return { detailId, detail };
     }
   } catch {
     // 미리 가져오기에 실패해도 응답 자체는 내보낸다. 클라이언트가 다시 시도한다.
