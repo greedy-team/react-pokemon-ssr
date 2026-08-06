@@ -24,10 +24,19 @@ async function startServer() {
       const template = await vite.transformIndexHtml(url, rawTemplate);
 
       const { render } = await vite.ssrLoadModule("/src/entry-server.tsx");
-      const { html: appHtml, status } = render(url);
+      const { loadInitialData, serializeInitialData } = await vite.ssrLoadModule(
+        "/src/initialData.ts",
+      );
+
+      const initialData = await loadInitialData();
+      const { html: appHtml, status } = render(url, initialData);
+
+      const dataScript = `<script>window.__INITIAL_DATA__ = ${serializeInitialData(initialData)}</script>`;
 
       // 치환값을 함수로 넘김(이때 마크업 깨질 수도 있음!!)
-      const html = template.replace("<!--ssr-outlet-->", () => appHtml);
+      const html = template
+        .replace("<!--ssr-outlet-->", () => appHtml)
+        .replace("<!--ssr-data-->", () => dataScript);
 
       res.status(status).set({ "Content-Type": "text/html" }).end(html);
     } catch (error) {

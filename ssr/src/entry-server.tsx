@@ -3,6 +3,8 @@ import { renderToString } from "react-dom/server";
 import { StaticRouter, matchRoutes } from "react-router-dom";
 import App from "./App";
 import { routes, NOT_FOUND_PATH } from "./routes";
+import { InitialDataProvider } from "./context/InitialDataContext";
+import type { InitialData } from "./initialData";
 
 function resolveStatus(url: string) {
   const pathname = url.split("?")[0];
@@ -13,13 +15,15 @@ function resolveStatus(url: string) {
   return isNotFound ? 404 : 200;
 }
 
-export function render(url: string) {
-  // 서버에는 window가 없어 현재 URL을 스스로 알 수 없기 대문에 요청 URL을 주입받음
+export function render(url: string, initialData: InitialData) {
+  // 서버에는 window가 없어 현재 URL을 스스로 알 수 없다. 요청 URL을 주입받는다.
   const html = renderToString(
     <StrictMode>
-      <StaticRouter location={url}>
-        <App />
-      </StaticRouter>
+      <InitialDataProvider data={initialData}>
+        <StaticRouter location={url}>
+          <App />
+        </StaticRouter>
+      </InitialDataProvider>
     </StrictMode>,
   );
 
