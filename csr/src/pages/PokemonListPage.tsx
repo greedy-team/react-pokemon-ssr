@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "../styles/PokemonList.css";
 import { useSearchParams } from "react-router-dom";
 import { fetchPokemonList, type PokemonListItem } from "../api/pokemon";
@@ -25,9 +25,13 @@ const PokemonListPage = ({ initialData }: Props) => {
     isValidInitialData ? initialData.totalPages : 0,
   );
   const [loading, setLoading] = useState(false);
-
+  const hasUsedInitialData = useRef(false);
   useEffect(() => {
-    if (isValidInitialData) return;
+    if (!hasUsedInitialData.current && isValidInitialData) {
+      hasUsedInitialData.current = true;
+      return;
+    }
+    hasUsedInitialData.current = true;
 
     fetchPokemonList(currentPage).then((data) => {
       setLoading(true);
