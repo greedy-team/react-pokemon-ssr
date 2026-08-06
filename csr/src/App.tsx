@@ -2,13 +2,10 @@ import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import PokemonListPage from "./pages/PokemonListPage";
 import PokemonDetailPage from "./pages/PokemonDetailPage";
-import type { PokemonListItem } from "./api/pokemon";
+import type { PokemonDetail, PokemonListResponse } from "./api/pokemon";
 
 type Props = {
-  initialData?: {
-    results: PokemonListItem[];
-    totalPages: number;
-  };
+  initialData?: PokemonListResponse | PokemonDetail;
 };
 
 const App = ({ initialData }: Props) => {
@@ -18,9 +15,20 @@ const App = ({ initialData }: Props) => {
       <Routes>
         <Route
           path="/"
-          element={<PokemonListPage initialData={initialData} />}
+          element={
+            <PokemonListPage
+              initialData={initialData as PokemonListResponse | undefined}
+            />
+          }
         />
-        <Route path="/pokemon/:id" element={<PokemonDetailPage />} />
+        <Route
+          path="/pokemon/:id"
+          element={
+            <PokemonDetailPage
+              initialData={initialData as PokemonDetail | undefined}
+            />
+          }
+        />
       </Routes>
     </>
   );
