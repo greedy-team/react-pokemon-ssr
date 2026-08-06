@@ -12,16 +12,22 @@ const PokemonDetailPage = ({
   initialData?: PokemonDetailType;
 }) => {
   const { id } = useParams<{ id: string }>();
+
+  // ① initialData가 진짜 "이 포켓몬"의 상세 데이터인지 확인
+  const isValidInitialData =
+    !!initialData && "types" in initialData && initialData.id === Number(id);
+
   const [pokemon, setPokemon] = useState<PokemonDetailType | null>(
-    initialData ?? null,
+    isValidInitialData ? initialData! : null,
   );
-  const [loading, setLoading] = useState(!initialData);
+  const [loading, setLoading] = useState(!isValidInitialData);
 
   useEffect(() => {
-    if (initialData) {
+    if (isValidInitialData) {
       setLoading(false);
       return;
     }
+    setLoading(true);
     fetchPokemonDetail(Number(id)).then((data) => {
       setPokemon(data);
       setLoading(false);

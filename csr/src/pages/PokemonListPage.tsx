@@ -16,13 +16,19 @@ const PokemonListPage = ({ initialData }: Props) => {
   const [searchParams] = useSearchParams();
   const currentPage = Number(searchParams.get("page") || "1");
 
+  const isValidInitialData = !!initialData && "results" in initialData;
+
   const [pokemons, setPokemons] = useState<PokemonListItem[]>(
-    initialData?.results ?? [],
+    isValidInitialData ? initialData.results : [],
   );
-  const [totalPages, setTotalPages] = useState(0);
+  const [totalPages, setTotalPages] = useState(
+    isValidInitialData ? initialData.totalPages : 0,
+  );
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (isValidInitialData) return;
+
     fetchPokemonList(currentPage).then((data) => {
       setLoading(true);
       setPokemons(data.results);
