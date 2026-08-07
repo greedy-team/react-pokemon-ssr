@@ -30,10 +30,26 @@ async function createServer() {
 
       template = await vite.transformIndexHtml(url, template);
 
-      const { fetchPokemonList } = await vite.ssrLoadModule(
-        "/src/api/pokemon.ts",
-      );
-      const initialData = await fetchPokemonList(1);
+      const parsedUrl = new URL(url, "http://localhost:3000");
+      const pathname = parsedUrl.pathname;
+      const searchParams = parsedUrl.searchParams;
+
+      let initialData = null;
+
+      const detailMatch = pathname.match(/^\/pokemon\/(\d+)$/);
+      if (detailMatch) {
+        const pokemonId = detailMatch[1];
+        const { fetchPokemonDetail } = await vite.ssrLoadModule(
+          "/src/api/pokemon.ts",
+        );
+        initialData = await fetchPokemonDetail(pokemonId);
+      } else if (pathname === "/") {
+        const page = searchParams.get("page") || "1";
+        const { fetchPokemonList } = await vite.ssrLoadModule(
+          "/src/api/pokemon.ts",
+        );
+        initialData = await fetchPokemonList(Number(page));
+      }
 
       const { render } = await vite.ssrLoadModule("/src/entry-server.tsx");
 
