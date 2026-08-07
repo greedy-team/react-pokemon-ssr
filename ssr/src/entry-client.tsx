@@ -12,13 +12,25 @@ declare global {
   }
 }
 
-// 서버가 심어둔 데이터를 그대로 초기 상태로 쓴다. 다시 fetch하면 hydration 결과가 달라진다.
-const initialData = window.__INITIAL_DATA__ ?? {};
+// 이미 값이 있는 promise. status/value를 채워두면 use()가 중단 없이 바로 읽는다.
+// 이게 없으면 hydration 중에 fallback이 한 번 스쳐 지나간다.
+function settled(value: InitialData): Promise<InitialData> {
+  const promise = Promise.resolve(value) as Promise<InitialData> & {
+    status: string;
+    value: InitialData;
+  };
+  promise.status = "fulfilled";
+  promise.value = value;
+
+  return promise;
+}
+
+const dataPromise = settled(window.__INITIAL_DATA__ ?? {});
 
 hydrateRoot(
   document.getElementById("root")!,
   <StrictMode>
-    <InitialDataProvider data={initialData}>
+    <InitialDataProvider dataPromise={dataPromise}>
       <BrowserRouter>
         <App />
       </BrowserRouter>
