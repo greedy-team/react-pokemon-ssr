@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import PokemonListPage from "./pages/PokemonListPage";
@@ -11,16 +12,18 @@ const App = ({ initialData }: AppProps) => {
   return (
     <>
       <Header />
-      <Routes>
-        <Route
-          path="/"
-          element={<PokemonListPage initialData={initialData} />}
-        />
-        <Route
-          path="/pokemon/:id"
-          element={<PokemonDetailPage initialData={initialData} />}
-        />
-      </Routes>
+      <Suspense fallback={<p className="loading">불러오는 중...</p>}>
+        <Routes>
+          <Route
+            path="/"
+            element={<PokemonListPage initialData={initialData} />}
+          />
+          <Route
+            path="/pokemon/:id"
+            element={<PokemonDetailPage initialData={initialData} />}
+          />
+        </Routes>
+      </Suspense>
     </>
   );
 };
