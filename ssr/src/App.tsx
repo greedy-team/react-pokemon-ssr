@@ -16,7 +16,10 @@ const App = ({ initialData }: AppProps) => {
           path="/"
           element={<PokemonListPage initialData={initialData} />}
         />
-        <Route path="/pokemon/:id" element={<PokemonDetailPage />} />
+        <Route
+          path="/pokemon/:id"
+          element={<PokemonDetailPage initialData={initialData} />}
+        />
       </Routes>
     </>
   );
