@@ -1,36 +1,53 @@
 import fs from "node:fs/promises";
 import { Transform } from "node:stream";
 import express from "express";
-import { createServer as createViteServer } from "vite";
 
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 const ABORT_DELAY = 10000;
+// 개발에서는 Vite가 소스를 즉석 변환하고, 프로덕션에서는 미리 빌드된 결과만 읽는다.
+const isProduction = process.env.NODE_ENV === "production";
 
 async function startServer() {
   const app = express();
 
-  // middlewareMode: Vite를 독립 서버가 아닌 Express 미들웨어로 붙여 개발 중 HMR을 유지한다.
-  // appType "custom": Vite가 index.html을 직접 서빙하지 않게 해서 HTML 응답 책임을 아래 핸들러가 갖는다.
-  const vite = await createViteServer({
-    server: { middlewareMode: true },
-    appType: "custom",
-  });
+  let vite;
+  let prodTemplate;
+  let prodEntry;
 
-  app.use(vite.middlewares);
+  if (isProduction) {
+    // 빌드된 정적 파일(JS·CSS)은 Express가 직접 서빙한다.
+    app.use(express.static("./dist/client", { index: false }));
+
+    // 템플릿과 서버 엔트리는 요청마다 읽을 필요가 없어 한 번만 불러둔다.
+    prodTemplate = await fs.readFile("./dist/client/index.html", "utf-8");
+    prodEntry = await import("./dist/server/entry-server.js");
+  } else {
+    // middlewareMode: Vite를 독립 서버가 아닌 Express 미들웨어로 붙여 개발 중 HMR을 유지한다.
+    // appType "custom": Vite가 index.html을 직접 서빙하지 않게 해서 HTML 응답 책임을 아래 핸들러가 갖는다.
+    const { createServer: createViteServer } = await import("vite");
+    vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: "custom",
+    });
+    app.use(vite.middlewares);
+  }
 
   app.use(async (req, res, next) => {
     const url = req.originalUrl;
 
     try {
-      const rawTemplate = await fs.readFile("./index.html", "utf-8");
-      const template = await vite.transformIndexHtml(url, rawTemplate);
+      // 프로덕션 템플릿에는 이미 해시가 붙은 에셋 경로가 들어 있다.
+      const template = isProduction
+        ? prodTemplate
+        : await vite.transformIndexHtml(
+            url,
+            await fs.readFile("./index.html", "utf-8"),
+          );
 
-      const { render, resolveStatus } = await vite.ssrLoadModule(
-        "/src/entry-server.tsx",
-      );
-      const { loadInitialData, serializeInitialData } = await vite.ssrLoadModule(
-        "/src/initialData.ts",
-      );
+      const { render, resolveStatus, loadInitialData, serializeInitialData } =
+        isProduction
+          ? prodEntry
+          : await vite.ssrLoadModule("/src/entry-server.tsx");
 
       // 일부러 await 하지 않는다. 데이터를 기다리는 동안 쉘을 먼저 흘려보내기 위해서다.
       const dataPromise = loadInitialData(url);
@@ -72,20 +89,22 @@ async function startServer() {
         },
         onError(error) {
           didError = true;
-          vite.ssrFixStacktrace(error);
+          if (!isProduction) vite.ssrFixStacktrace(error);
           console.error(error);
         },
       });
 
       setTimeout(abort, ABORT_DELAY);
     } catch (error) {
-      vite.ssrFixStacktrace(error);
+      if (!isProduction) vite.ssrFixStacktrace(error);
       next(error);
     }
   });
 
   app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+    console.log(
+      `[${isProduction ? "production" : "development"}] Server running at http://localhost:${PORT}`,
+    );
   });
 }
 
