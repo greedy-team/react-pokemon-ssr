@@ -3,12 +3,19 @@ import Header from "./components/Header";
 import PokemonListPage from "./pages/PokemonListPage";
 import PokemonDetailPage from "./pages/PokemonDetailPage";
 
-const App = () => {
+interface AppProps {
+  initialData?: any;
+}
+
+const App = ({ initialData }: AppProps) => {
   return (
     <>
       <Header />
       <Routes>
-        <Route path="/" element={<PokemonListPage />} />
+        <Route
+          path="/"
+          element={<PokemonListPage initialData={initialData} />}
+        />
         <Route path="/pokemon/:id" element={<PokemonDetailPage />} />
       </Routes>
     </>
