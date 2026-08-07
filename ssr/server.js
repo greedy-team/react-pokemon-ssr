@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { PassThrough } from "node:stream";
 import express from "express";
 import { createServer as createViteServer } from "vite";
 
@@ -51,17 +52,43 @@ async function createServer() {
         initialData = await fetchPokemonList(Number(page));
       }
 
-      const { render } = await vite.ssrLoadModule("/src/entry-server.tsx");
-
-      const { html: appHtml } = render(url, initialData);
+      const [htmlStart, htmlEnd] = template.split("<!--app-html-->");
 
       const dataScript = `<script>window.__INITIAL_DATA__ = ${JSON.stringify(initialData).replace(/</g, "\\u003c")}</script>`;
 
-      const html = template
-        .replace("<!--app-html-->", appHtml)
-        .replace("</head>", `${dataScript}</head>`);
+      const headWithData = htmlStart.replace("</head>", `${dataScript}</head>`);
 
-      res.status(200).set({ "Content-Type": "text/html" }).end(html);
+      const { render } = await vite.ssrLoadModule("/src/entry-server.tsx");
+
+      let didError = false;
+
+      const stream = render(url, initialData, {
+        onShellReady() {
+          res.status(didError ? 500 : 200);
+          res.setHeader("Content-Type", "text/html; charset=utf-8");
+
+          const passThrough = new PassThrough();
+
+          passThrough.on("end", () => {
+            res.end(htmlEnd);
+          });
+
+          res.write(headWithData);
+
+          stream.pipe(passThrough);
+
+          passThrough.pipe(res, { end: false });
+        },
+
+        onShellError(error) {
+          console.error(error);
+          res.status(500).send("Server Error");
+        },
+        onError(error) {
+          didError = true;
+          console.error(error);
+        },
+      });
     } catch (e) {
       vite.ssrFixStacktrace(e);
       next(e);
