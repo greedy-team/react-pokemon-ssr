@@ -3,19 +3,28 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { PassThrough } from "node:stream";
 import express from "express";
-import { createServer as createViteServer } from "vite";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const isProd = process.env.NODE_ENV === "production";
 
 async function createServer() {
   const app = express();
+  let vite;
 
-  const vite = await createViteServer({
-    server: { middlewareMode: true },
-    appType: "custom",
-  });
-
-  app.use(vite.middlewares);
+  if (!isProd) {
+    const { createServer: createViteServer } = await import("vite");
+    vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: "custom",
+    });
+    app.use(vite.middlewares);
+  } else {
+    app.use(
+      express.static(path.resolve(__dirname, "dist/client"), {
+        index: false,
+      }),
+    );
+  }
 
   app.use(async (req, res, next) => {
     if (req.method !== "GET" || !req.accepts("html")) {
@@ -24,12 +33,36 @@ async function createServer() {
     const url = req.originalUrl;
 
     try {
-      let template = fs.readFileSync(
-        path.resolve(__dirname, "index.html"),
-        "utf-8",
-      );
+      let template;
+      let render;
+      let fetchPokemonDetail;
+      let fetchPokemonList;
+      if (!isProd) {
+        template = fs.readFileSync(
+          path.resolve(__dirname, "index.html"),
+          "utf-8",
+        );
 
-      template = await vite.transformIndexHtml(url, template);
+        template = await vite.transformIndexHtml(url, template);
+
+        const apiModule = await vite.ssrLoadModule("/src/api/pokemon.ts");
+        fetchPokemonDetail = apiModule.fetchPokemonDetail;
+        fetchPokemonList = apiModule.fetchPokemonList;
+
+        const serverModule = await vite.ssrLoadModule("/src/entry-server.tsx");
+        render = serverModule.render;
+      } else {
+        template = fs.readFileSync(
+          path.resolve(__dirname, "dist/client/index.html"),
+          "utf-8",
+        );
+        const apiModule = await import("./dist/server/api/pokemon.js");
+        fetchPokemonDetail = apiModule.fetchPokemonDetail;
+        fetchPokemonList = apiModule.fetchPokemonList;
+
+        const serverModule = await import("./dist/server/entry-server.js");
+        render = serverModule.render;
+      }
 
       const parsedUrl = new URL(url, "http://localhost:3000");
       const pathname = parsedUrl.pathname;
@@ -40,15 +73,11 @@ async function createServer() {
       const detailMatch = pathname.match(/^\/pokemon\/(\d+)$/);
       if (detailMatch) {
         const pokemonId = detailMatch[1];
-        const { fetchPokemonDetail } = await vite.ssrLoadModule(
-          "/src/api/pokemon.ts",
-        );
+
         initialData = await fetchPokemonDetail(pokemonId);
       } else if (pathname === "/") {
         const page = searchParams.get("page") || "1";
-        const { fetchPokemonList } = await vite.ssrLoadModule(
-          "/src/api/pokemon.ts",
-        );
+
         initialData = await fetchPokemonList(Number(page));
       }
 
@@ -57,8 +86,6 @@ async function createServer() {
       const dataScript = `<script>window.__INITIAL_DATA__ = ${JSON.stringify(initialData).replace(/</g, "\\u003c")}</script>`;
 
       const headWithData = htmlStart.replace("</head>", `${dataScript}</head>`);
-
-      const { render } = await vite.ssrLoadModule("/src/entry-server.tsx");
 
       let didError = false;
 
