@@ -30,11 +30,20 @@ async function createServer() {
 
       template = await vite.transformIndexHtml(url, template);
 
+      const { fetchPokemonList } = await vite.ssrLoadModule(
+        "/src/api/pokemon.ts",
+      );
+      const initialData = await fetchPokemonList(1);
+
       const { render } = await vite.ssrLoadModule("/src/entry-server.tsx");
 
-      const { html: appHtml } = render(url);
+      const { html: appHtml } = render(url, initialData);
 
-      const html = template.replace("<!--app-html-->", appHtml);
+      const dataScript = `<script>window.__INITIAL_DATA__ = ${JSON.stringify(initialData).replace(/</g, "\\u003c")}</script>`;
+
+      const html = template
+        .replace("<!--app-html-->", appHtml)
+        .replace("</head>", `${dataScript}</head>`);
 
       res.status(200).set({ "Content-Type": "text/html" }).end(html);
     } catch (e) {
