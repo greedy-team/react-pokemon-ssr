@@ -55,8 +55,21 @@ export async function fetchPokemonList(
   };
 }
 
-export async function fetchPokemonDetail(id: number): Promise<PokemonDetail> {
+export async function fetchPokemonDetail(
+  id: number,
+): Promise<PokemonDetail | null> {
   const response = await fetch(`${BASE_URL}/pokemon/${id}`);
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch Pokemon detail for ID ${id}: ${response.status} ${response.statusText}`,
+    );
+  }
+
   const pokemon = await response.json();
 
   return {
