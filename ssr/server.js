@@ -79,7 +79,10 @@ async function createServer() {
       const appHtml = await render(initialData, url);
 
       // 5. 앱이 렌더링한 HTML을 템플릿에 주입합니다.
-      const initialDataJson = JSON.stringify(initialData);
+      const initialDataJson = JSON.stringify(initialData).replace(
+        /</g,
+        "\\u003c",
+      );
       const html = template
         .replace(`<!--pokemon-ssr-content-->`, () => appHtml)
         .replace(
