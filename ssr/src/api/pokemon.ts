@@ -1,4 +1,4 @@
-import { BASE_URL, PAGE_SIZE } from "../constants";
+import { BASE_URL, PAGE_SIZE, HTTP_STATUS } from "../constants";
 
 export interface PokemonListItem {
   name: string;
@@ -60,7 +60,7 @@ export async function fetchPokemonDetail(
 ): Promise<PokemonDetail | null> {
   const response = await fetch(`${BASE_URL}/pokemon/${id}`);
 
-  if (response.status === 404) {
+  if (response.status === HTTP_STATUS.NOT_FOUND) {
     return null;
   }
 

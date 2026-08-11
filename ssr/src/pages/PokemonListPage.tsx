@@ -14,6 +14,7 @@ export interface InitialData {
   totalPages?: number;
   page?: number;
   pokemon?: PokemonDetail;
+  notFound?: boolean;
 }
 
 interface Props {

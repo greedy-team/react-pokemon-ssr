@@ -5,6 +5,7 @@ import {
   fetchPokemonDetail,
   type PokemonDetail as PokemonDetailType,
 } from "../api/pokemon";
+import NotFoundPage from "./NotFoundPage";
 interface Props {
   initialData?: PokemonDetailType;
 }
@@ -27,8 +28,12 @@ const PokemonDetailPage = ({ initialData }: Props) => {
     });
   }, [id, initialPokemon]);
 
-  if (loading || !pokemon) {
+  if (loading) {
     return <p className="loading">불러오는 중...</p>;
+  }
+
+  if (!pokemon) {
+    return <NotFoundPage />;
   }
 
   return (

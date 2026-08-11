@@ -44,25 +44,36 @@ async function createServer() {
       const { fetchPokemonList, fetchPokemonDetail } = await vite.ssrLoadModule(
         "/src/api/pokemon.ts",
       );
+      const { HTTP_STATUS } = await vite.ssrLoadModule("/src/constants.ts");
 
       // 4. 앱 HTML을 렌더링합니다. entry-server.js에서 export한 `render` 함수가
       //    적절한 프레임워크 SSR API를 호출한다고 가정합니다.
       //    예: ReactDOMServer.renderToString()
       const requestedPage = Number(req.query.page) || 1;
-      const pokemonIdMatch = url.match(/^\/pokemon\/(\d+)$/);
+      const pathname = url.split("?")[0];
+      const pokemonIdMatch = pathname.match(/^\/pokemon\/(\d+)$/);
       let initialData;
+      let statusCode = HTTP_STATUS.OK;
 
       if (pokemonIdMatch) {
         const pokemonId = Number(pokemonIdMatch[1]);
         const pokemonDetail = await fetchPokemonDetail(pokemonId);
-        initialData = { pokemon: pokemonDetail };
-      } else {
+        if (pokemonDetail) {
+          initialData = { pokemon: pokemonDetail };
+        } else {
+          initialData = { notFound: true };
+          statusCode = HTTP_STATUS.NOT_FOUND;
+        }
+      } else if (pathname === "/") {
         const data = await fetchPokemonList(requestedPage);
         initialData = {
           pokemons: data.results,
           totalPages: data.totalPages,
           page: requestedPage,
         };
+      } else {
+        initialData = { notFound: true };
+        statusCode = HTTP_STATUS.NOT_FOUND;
       }
 
       const appHtml = await render(initialData, url);
@@ -78,7 +89,7 @@ async function createServer() {
         );
 
       // 6. 렌더링된 HTML을 반환합니다.
-      res.status(200).set({ "Content-Type": "text/html" }).end(html);
+      res.status(statusCode).set({ "Content-Type": "text/html" }).end(html);
     } catch (e) {
       // 오류를 잡으면 Vite가 스택 트레이스를 실제 소스 코드에 매핑되도록
       // 수정하게 합니다.
