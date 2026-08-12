@@ -9,21 +9,43 @@ const isProd = process.env.NODE_ENV === "production";
 
 async function createServer() {
   const app = express();
-  let vite;
+  let loadTemplate;
+  let loadModules;
+  let fixStacktrace;
 
   if (!isProd) {
     const { createServer: createViteServer } = await import("vite");
-    vite = await createViteServer({
+    const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "custom",
     });
     app.use(vite.middlewares);
+
+    loadTemplate = async (url) => {
+      const raw = fs.readFileSync(
+        path.resolve(__dirname, "index.html"),
+        "utf-8",
+      );
+      return await vite.transformIndexHtml(url, raw);
+    };
+    loadModules = async () => vite.ssrLoadModule("/src/entry-server.tsx");
+    fixStacktrace = (e) => vite.ssrFixStacktrace(e);
   } else {
     app.use(
       express.static(path.resolve(__dirname, "dist/client"), {
         index: false,
       }),
     );
+
+    const prodTemplate = fs.readFileSync(
+      path.resolve(__dirname, "dist/client/index.html"),
+      "utf-8",
+    );
+    const prodServerModule = await import("./dist/server/entry-server.js");
+
+    loadTemplate = async () => prodTemplate;
+    loadModules = async () => prodServerModule;
+    fixStacktrace = () => {};
   }
 
   app.use(async (req, res, next) => {
@@ -33,33 +55,9 @@ async function createServer() {
     const url = req.originalUrl;
 
     try {
-      let template;
-      let render;
-      let fetchPokemonDetail;
-      let fetchPokemonList;
-      if (!isProd) {
-        template = fs.readFileSync(
-          path.resolve(__dirname, "index.html"),
-          "utf-8",
-        );
-
-        template = await vite.transformIndexHtml(url, template);
-
-        const serverModule = await vite.ssrLoadModule("/src/entry-server.tsx");
-        render = serverModule.render;
-        fetchPokemonDetail = serverModule.fetchPokemonDetail;
-        fetchPokemonList = serverModule.fetchPokemonList;
-      } else {
-        template = fs.readFileSync(
-          path.resolve(__dirname, "dist/client/index.html"),
-          "utf-8",
-        );
-
-        const serverModule = await import("./dist/server/entry-server.js");
-        render = serverModule.render;
-        fetchPokemonDetail = serverModule.fetchPokemonDetail;
-        fetchPokemonList = serverModule.fetchPokemonList;
-      }
+      const template = await loadTemplate(url);
+      const { render, fetchPokemonDetail, fetchPokemonList } =
+        await loadModules();
 
       const parsedUrl = new URL(url, "http://localhost:3000");
       const pathname = parsedUrl.pathname;
@@ -114,9 +112,7 @@ async function createServer() {
         },
       });
     } catch (e) {
-      if (!isProd && vite) {
-        vite.ssrFixStacktrace(e);
-      }
+      fixStacktrace(e);
       console.error("서버 렌더링 중 에러 발생:", e);
       next(e);
     }
