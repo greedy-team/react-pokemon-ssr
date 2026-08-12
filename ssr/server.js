@@ -64,22 +64,17 @@ async function createServer() {
       const searchParams = parsedUrl.searchParams;
 
       let initialData = null;
-
       const detailMatch = pathname.match(/^\/pokemon\/(\d+)$/);
       if (detailMatch) {
         const pokemonId = detailMatch[1];
-
         initialData = await fetchPokemonDetail(pokemonId);
       } else if (pathname === "/") {
         const page = searchParams.get("page") || "1";
-
         initialData = await fetchPokemonList(Number(page));
       }
 
       const [htmlStart, htmlEnd] = template.split("<!--app-html-->");
-
       const dataScript = `<script>window.__INITIAL_DATA__ = ${JSON.stringify(initialData).replace(/</g, "\\u003c")}</script>`;
-
       const headWithData = htmlStart.replace("</head>", `${dataScript}</head>`);
 
       let didError = false;
