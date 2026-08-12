@@ -9,6 +9,12 @@ interface AppProps {
 }
 
 const App = ({ initialData }: AppProps) => {
+  const isListData = initialData && Array.isArray(initialData.results);
+  const isDetailData =
+    initialData &&
+    (typeof initialData.id === "number" ||
+      typeof initialData.name === "string");
+
   return (
     <>
       <Header />
@@ -16,11 +22,19 @@ const App = ({ initialData }: AppProps) => {
         <Routes>
           <Route
             path="/"
-            element={<PokemonListPage initialData={initialData} />}
+            element={
+              <PokemonListPage
+                initialData={isListData ? initialData : undefined}
+              />
+            }
           />
           <Route
             path="/pokemon/:id"
-            element={<PokemonDetailPage initialData={initialData} />}
+            element={
+              <PokemonDetailPage
+                initialData={isDetailData ? initialData : undefined}
+              />
+            }
           />
         </Routes>
       </Suspense>
