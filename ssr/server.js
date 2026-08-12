@@ -45,23 +45,20 @@ async function createServer() {
 
         template = await vite.transformIndexHtml(url, template);
 
-        const apiModule = await vite.ssrLoadModule("/src/api/pokemon.ts");
-        fetchPokemonDetail = apiModule.fetchPokemonDetail;
-        fetchPokemonList = apiModule.fetchPokemonList;
-
         const serverModule = await vite.ssrLoadModule("/src/entry-server.tsx");
         render = serverModule.render;
+        fetchPokemonDetail = serverModule.fetchPokemonDetail;
+        fetchPokemonList = serverModule.fetchPokemonList;
       } else {
         template = fs.readFileSync(
           path.resolve(__dirname, "dist/client/index.html"),
           "utf-8",
         );
-        const apiModule = await import("./dist/server/api/pokemon.js");
-        fetchPokemonDetail = apiModule.fetchPokemonDetail;
-        fetchPokemonList = apiModule.fetchPokemonList;
 
         const serverModule = await import("./dist/server/entry-server.js");
         render = serverModule.render;
+        fetchPokemonDetail = serverModule.fetchPokemonDetail;
+        fetchPokemonList = serverModule.fetchPokemonList;
       }
 
       const parsedUrl = new URL(url, "http://localhost:3000");
@@ -117,7 +114,10 @@ async function createServer() {
         },
       });
     } catch (e) {
-      vite.ssrFixStacktrace(e);
+      if (!isProd && vite) {
+        vite.ssrFixStacktrace(e);
+      }
+      console.error("서버 렌더링 중 에러 발생:", e);
       next(e);
     }
   });

@@ -20,3 +20,5 @@ export function render(
     options,
   );
 }
+
+export { fetchPokemonList, fetchPokemonDetail } from "./api/pokemon";
