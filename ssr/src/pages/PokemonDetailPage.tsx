@@ -18,7 +18,7 @@ const PokemonDetailPage = () => {
   const [pokemon, setPokemon] = useState<PokemonDetailType | null>(
     preloaded ?? null,
   );
-  // 화면에 들고 있는 데이터가 어떤 포켓몬 것인지. 서버가 채워준 값에서 출발한다.
+
   const [loadedId, setLoadedId] = useState<number | null>(
     preloaded ? currentId : null,
   );
