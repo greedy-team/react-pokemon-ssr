@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import "../styles/PokemonDetail.css";
 import { useParams, Link } from "react-router-dom";
 import {
@@ -6,12 +6,28 @@ import {
   type PokemonDetail as PokemonDetailType,
 } from "../api/pokemon";
 
-const PokemonDetailPage = () => {
+interface PokemonDetailPageProps {
+  initialData?: PokemonDetailType;
+}
+
+const PokemonDetailPage = ({ initialData }: PokemonDetailPageProps) => {
   const { id } = useParams<{ id: string }>();
-  const [pokemon, setPokemon] = useState<PokemonDetailType | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [pokemon, setPokemon] = useState<PokemonDetailType | null>(
+    initialData || null,
+  );
+  const [loading, setLoading] = useState(!initialData);
+
+  const isInitialRender = useRef(true);
 
   useEffect(() => {
+    if (initialData && isInitialRender.current) {
+      isInitialRender.current = false;
+      return;
+    }
+
+    if (!id) return;
+
+    setLoading(true);
     fetchPokemonDetail(Number(id)).then((data) => {
       setPokemon(data);
       setLoading(false);

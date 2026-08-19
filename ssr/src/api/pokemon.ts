@@ -34,6 +34,13 @@ export async function fetchPokemonList(
   const response = await fetch(
     `${BASE_URL}/pokemon?offset=${offset}&limit=${PAGE_SIZE}`,
   );
+
+  if (!response.ok) {
+    throw new Error(
+      `포켓몬 목록을 불러오지 못했습니다. (Status: ${response.status})`,
+    );
+  }
+
   const data = await response.json();
 
   const results: PokemonListItem[] = data.results.map(
@@ -57,6 +64,13 @@ export async function fetchPokemonList(
 
 export async function fetchPokemonDetail(id: number): Promise<PokemonDetail> {
   const response = await fetch(`${BASE_URL}/pokemon/${id}`);
+
+  if (!response.ok) {
+    throw new Error(
+      `포켓몬 상세 정보를 불러오지 못했습니다. (Status: ${response.status})`,
+    );
+  }
+
   const pokemon = await response.json();
 
   return {
