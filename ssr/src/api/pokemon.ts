@@ -1,4 +1,4 @@
-import { BASE_URL, PAGE_SIZE } from "../constants";
+import { BASE_URL, PAGE_SIZE, HTTP_STATUS } from "../constants";
 
 export interface PokemonListItem {
   name: string;
@@ -55,8 +55,21 @@ export async function fetchPokemonList(
   };
 }
 
-export async function fetchPokemonDetail(id: number): Promise<PokemonDetail> {
+export async function fetchPokemonDetail(
+  id: number,
+): Promise<PokemonDetail | null> {
   const response = await fetch(`${BASE_URL}/pokemon/${id}`);
+
+  if (response.status === HTTP_STATUS.NOT_FOUND) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch Pokemon detail for ID ${id}: ${response.status} ${response.statusText}`,
+    );
+  }
+
   const pokemon = await response.json();
 
   return {
