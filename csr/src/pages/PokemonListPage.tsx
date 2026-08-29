@@ -1,20 +1,38 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "../styles/PokemonList.css";
 import { useSearchParams } from "react-router-dom";
 import { fetchPokemonList, type PokemonListItem } from "../api/pokemon";
 import PokemonList from "../components/PokemonList";
 import Pagination from "../components/Pagination";
 
+type Props = {
+  initialData?: {
+    results: PokemonListItem[];
+    totalPages: number;
+  };
+};
 
-const PokemonListPage = () => {
+const PokemonListPage = ({ initialData }: Props) => {
   const [searchParams] = useSearchParams();
   const currentPage = Number(searchParams.get("page") || "1");
 
-  const [pokemons, setPokemons] = useState<PokemonListItem[]>([]);
-  const [totalPages, setTotalPages] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const isValidInitialData = !!initialData && "results" in initialData;
 
+  const [pokemons, setPokemons] = useState<PokemonListItem[]>(
+    isValidInitialData ? initialData.results : [],
+  );
+  const [totalPages, setTotalPages] = useState(
+    isValidInitialData ? initialData.totalPages : 0,
+  );
+  const [loading, setLoading] = useState(false);
+  const hasUsedInitialData = useRef(false);
   useEffect(() => {
+    if (!hasUsedInitialData.current && isValidInitialData) {
+      hasUsedInitialData.current = true;
+      return;
+    }
+    hasUsedInitialData.current = true;
+
     fetchPokemonList(currentPage).then((data) => {
       setLoading(true);
       setPokemons(data.results);

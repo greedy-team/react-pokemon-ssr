@@ -6,12 +6,28 @@ import {
   type PokemonDetail as PokemonDetailType,
 } from "../api/pokemon";
 
-const PokemonDetailPage = () => {
+const PokemonDetailPage = ({
+  initialData,
+}: {
+  initialData?: PokemonDetailType;
+}) => {
   const { id } = useParams<{ id: string }>();
-  const [pokemon, setPokemon] = useState<PokemonDetailType | null>(null);
-  const [loading, setLoading] = useState(true);
+
+  // ① initialData가 진짜 "이 포켓몬"의 상세 데이터인지 확인
+  const isValidInitialData =
+    !!initialData && "types" in initialData && initialData.id === Number(id);
+
+  const [pokemon, setPokemon] = useState<PokemonDetailType | null>(
+    isValidInitialData ? initialData! : null,
+  );
+  const [loading, setLoading] = useState(!isValidInitialData);
 
   useEffect(() => {
+    if (isValidInitialData) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     fetchPokemonDetail(Number(id)).then((data) => {
       setPokemon(data);
       setLoading(false);
